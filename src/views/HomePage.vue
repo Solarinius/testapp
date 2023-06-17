@@ -133,7 +133,7 @@ export default defineComponent({
   background: wheat;
   height: 100%;
   padding: 1rem;
-  display: flex;
+  
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
@@ -148,7 +148,6 @@ export default defineComponent({
 .embroidery {
   max-width: 686px;
   position: absolute;
-  top: 53%;
   transform: translateY(-75%);
 }
 
