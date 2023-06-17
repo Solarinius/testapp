@@ -11,6 +11,7 @@ export default defineComponent({
 
   data: () => ({
     advice: '', // Advice currently being displayed
+    created: '',
     animationState: '', // Dynamic class that determines whether to fade advice in or out
     hourToFetchNewAdvice: null,
     lastSaveDate: null, // The last time we fetched new Advice
@@ -23,6 +24,7 @@ export default defineComponent({
 
   // When we'll check if advice data needs to be changed
   async ionViewWillEnter() {
+    this.fetchAdvice();
     setInterval(this.fetchAdvice, 60000);
   },
 
@@ -31,11 +33,14 @@ export default defineComponent({
   methods: {
     async fetchAdvice() {
 
-      let testdate = '2023-06-15T13:59:53';
+      let testdate = '2023-06-17T14:57';
 
-      let now = new Date().toISOString().split('.')[0];
+      let time = new Date();
+      time.setMinutes(time.getMinutes() - 1);
+      time = new Date(time);
 
-      console.log('type: ' + typeof (now));
+      let now = time.toISOString().split('.')[0].slice(0, -3);
+
       console.log('time: ' + now);
 
       let options = {
@@ -52,9 +57,22 @@ export default defineComponent({
         options
       )
         .then(({ data }) => {
-          this.advice = data;
+
+          if (data["orders"].length > 0) {
+            data["orders"].forEach(element => {
+              this.advice = element['id'];
+              this.created = element['date_created'];
+            });
+          }
+          else {
+            this.advice = 'nothing so far';
+            this.created = now;
+          }
         }).catch((error) => {
           this.advice = error;
+          console.log('err = ' + error);
+
+
         });
     },
   },
@@ -65,7 +83,8 @@ export default defineComponent({
   <IonPage>
     <div class="Home">
 
-      <p class="embroidery" :class="animationState">{{ advice }}</p>
+      <p>{{ advice }}</p>
+      <p>{{ created }}</p>
 
     </div>
   </IonPage>
@@ -102,6 +121,10 @@ export default defineComponent({
 
 .fadeOut {
   animation: fadeOut ease 3s;
+}
+
+p {
+  background-color: blueviolet;
 }
 
 @keyframes fadeIn {
