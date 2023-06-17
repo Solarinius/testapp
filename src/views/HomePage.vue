@@ -139,8 +139,7 @@ export default defineComponent({
   justify-content: space-between;
 
   /* Apply the custom font and style the text */
-  font-family: 'HovdenStitch';
-  font-size: 5rem;
+  font-size: 1rem;
   color: #002657;
   text-align: center;
 }
