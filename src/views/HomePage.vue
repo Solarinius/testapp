@@ -58,7 +58,7 @@ export default defineComponent({
       )
         .then(({ data }) => {
 
-          if (data["orders"].length > 0) {
+          if (data && data["orders"].length > 0) {
             data["orders"].forEach(element => {
               this.advice = element['id'];
               this.created = element['date_created'];
