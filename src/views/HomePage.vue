@@ -33,6 +33,7 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonButton, IonLabel } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { CapacitorHttp } from '@capacitor/core';
+import { Http, HttpResponse } from '@capacitor-community/http';
 
 export default defineComponent({
   name: 'Home',
@@ -48,7 +49,7 @@ export default defineComponent({
     IonItem
   },
   data() {
-    return { users: null } // sets users to null on instantiation
+    return { users: '' } // sets users to null on instantiation
   },
   methods: {
     async loadUsers() {
@@ -65,7 +66,7 @@ export default defineComponent({
         const response: HttpResponse = await CapacitorHttp.get(options);
         this.users = response.data;
       } catch (e) {
-        this.users = e;
+        this.users = e as string;
       }
 
     }
