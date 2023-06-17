@@ -32,7 +32,6 @@
 <script lang="ts">
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonButton, IonLabel } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { CapacitorHttp } from '@capacitor/core';
 import { Http, HttpResponse } from '@capacitor-community/http';
 
 export default defineComponent({
@@ -63,7 +62,7 @@ export default defineComponent({
       
 
       try {
-        const response: HttpResponse = await CapacitorHttp.get(options);
+        const response: HttpResponse = await Http.get(options);
         this.users = response.data;
       } catch (e) {
         this.users = e as string;
