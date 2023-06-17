@@ -23,7 +23,7 @@
           </ion-item>
         </ion-list> -->
         <ion-label>{{ users }} </ion-label>
-        <ion-button v-show="users" @click="users = null" color="danger">Hide Users</ion-button>
+        <ion-button v-show="users" @click="users = ''" color="danger">Hide Users</ion-button>
       </div>
     </ion-content>
   </ion-page>
