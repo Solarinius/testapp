@@ -1,94 +1,184 @@
-<template>
-  <ion-page>
-    <ion-header :translucent="true">
-      <ion-toolbar>
-        <ion-title>Demo Application</ion-title>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content :fullscreen="true">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="small">Demo Application</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
-      <div id="container" v-bind:class="{ 'top-margin': !users, 'usersShowing': users }">
-
-        <ion-button v-show="!users" @click="loadUsers()" expand="block">View All Users</ion-button>
-        <strong v-show="users"> All Users</strong><br>
-        <!-- <ion-list>
-          <ion-item v-for="user in users" v-bind:key="user.id">
-            <ion-label>{{ user.name }} </ion-label>
-          </ion-item>
-        </ion-list> -->
-        <ion-label>{{ users }} </ion-label>
-        <ion-button v-show="users" @click="users = ''" color="danger">Hide Users</ion-button>
-      </div>
-    </ion-content>
-  </ion-page>
-</template>
-
 <script lang="ts">
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonButton, IonLabel } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { Http, HttpResponse } from '@capacitor-community/http';
+import { IonPage } from '@ionic/vue';
+import '@capacitor-community/http';
+import { Plugins } from '@capacitor/core';
+const { Http } = Plugins;
 
 export default defineComponent({
   name: 'Home',
-  components: {
-    IonContent,
-    IonHeader,
-    IonPage,
-    IonTitle,
-    IonToolbar,
-    IonLabel,
-    IonButton,
-    IonList,
-    IonItem
+  components: { IonPage },
+
+  data: () => ({
+    advice: '', // Advice currently being displayed
+    animationState: '', // Dynamic class that determines whether to fade advice in or out
+    hourToFetchNewAdvice: null,
+    lastSaveDate: null, // The last time we fetched new Advice
+    today: new Date(),
+  }),
+
+  computed: {
+    currentDate() {
+      return this.today.getDate();
+    },
+
+    currentHour() {
+      return this.today.getHours();
+    },
+
+    hourToEraseCurrentAdvice() {
+      let oneHourPrior = this.hourToFetchNewAdvice - 1;
+      if (oneHourPrior < 0) oneHourPrior = 23;
+      return oneHourPrior;
+    },
   },
-  data() {
-    return { users: '' } // sets users to null on instantiation
+
+  // When we'll check if advice data needs to be changed
+  async ionViewWillEnter() {
+    // If we haven't stored an hourToFetchNewAdvice before, calculate and store that and hourToEraseCurrentAdvice
+    if (!this.hourToFetchNewAdvice) this.hourToFetchNewAdvice = this.currentHour
+
+    this.updateAdvice()
   },
+
   methods: {
-    async loadUsers() {
+    async fetchAdvice() {
 
       const options = {
-        url: 'https://my.deal.by/api/v1/orders/list',
-        headers: { 'Authorization': 'Bearer 09db5f5143554c6b2bc31920a1553be43e7f2c1a' },
+        'method': 'GET',
+        'url': 'https://my.deal.by/api/v1/orders/list',
+        'headers': {
+          'Authorization': 'Bearer 09db5f5143554c6b2bc31920a1553be43e7f2c1a',
+          "Content-Type": "application/json"
+        }
       };
 
+      /* const options = {
+        'method': 'GET',
+        'url': 'https://my.deal.by/api/v1/orders/list'
+      }; */
 
-      
+      /* return await Http.request({
+        method: 'GET',
+        url: 'https://api.adviceslip.com/advice',
 
-      try {
-        const response: HttpResponse = await Http.get(options);
-        this.users = response.data;
-      } catch (e) {
-        this.users = e as string;
+      }) */
+      return await Http.request(
+        options
+      )
+        .then(({ data }) => {
+          // Set dynamic class to fade in text
+          this.animationState = 'fadeIn'
+          this.resetAnimationState()
+
+          // Save new advice
+          this.advice = data;
+          // In other words:
+          // const dataInJs = JSON.parse(data)
+          // const slip = dataInJs.slip
+          // this.advice = slip.advice
+          // this.advice = this.advice.toUpperCase() — // font supports upper case only
+
+          // Update lastSaveDate
+          this.lastSaveDate = this.currentDate
+        }).catch((error) => {
+          this.advice = error;
+        });
+    },
+
+    updateAdvice() {
+      // If 24h have passed, fetch new advice
+      if (this.currentHour === this.hourToFetchNewAdvice && this.currentDate != this.lastSaveDate) this.fetchAdvice()
+
+      // If 23 hours have passed, start fading out current advice
+      else if (this.currentHour === this.hourToEraseCurrentAdvice && this.advice) {
+        // Set dynamic class to fade out text
+        this.animationState = 'fadeOut'
+        this.resetAnimationState()
+
+        // Clear advice from state after the fade out animation ends
+        setTimeout(() => {
+          this.advice = ''
+        }, 10000)
       }
 
+      // Check every 10m if it's time to fetch/erase advice
+      setTimeout(this.updateAdvice, 600000)
+    },
+
+    // Clear animation from advice after one playthrough
+    // A safer approach might be to listen for `transistionend`
+    resetAnimationState() {
+      setTimeout(() => {
+        this.animationState = ''
+      }, 10000)
     }
   },
-}
-)
+});
 </script>
 
+<template>
+  <IonPage>
+    <div class="Home">
+
+      <p class="embroidery" :class="animationState">{{ advice }}</p>
+
+    </div>
+  </IonPage>
+</template>
+
 <style scoped>
-#container {
+/* Center and style the content */
+.Home {
+  background: wheat;
+  height: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+
+  /* Apply the custom font and style the text */
+  font-family: 'HovdenStitch';
+  font-size: 5rem;
+  color: #002657;
   text-align: center;
+}
+
+/* Allow the flourishes to visually curve more closely around the text */
+.embroidery {
+  max-width: 686px;
   position: absolute;
-  left: 0;
-  right: 0;
-
-  transform: translateY(-50%);
+  top: 53%;
+  transform: translateY(-75%);
 }
 
-.top-margin {
-  top: 20%;
+/* Animate new advice being added and old advice being removed */
+.fadeIn {
+  animation: fadeIn ease 3s;
 }
 
-.usersShowing {
-  margin-top: 70%;
+.fadeOut {
+  animation: fadeOut ease 3s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 </style>
