@@ -2,55 +2,93 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-title>Blank</ion-title>
+        <ion-title>Demo Application</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content :fullscreen="true">
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Blank</ion-title>
+          <ion-title size="small">Demo Application</ion-title>
         </ion-toolbar>
       </ion-header>
 
-      <div id="container">
-        <strong>Ready to create an app?</strong>
-        <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+      <div id="container" v-bind:class="{ 'top-margin': !users, 'usersShowing': users }">
+
+        <ion-button v-show="!users" @click="loadUsers()" expand="block">View All Users</ion-button>
+        <strong v-show="users"> All Users</strong><br>
+        <!-- <ion-list>
+          <ion-item v-for="user in users" v-bind:key="user.id">
+            <ion-label>{{ user.name }} </ion-label>
+          </ion-item>
+        </ion-list> -->
+        <ion-label>{{ users }} </ion-label>
+        <ion-button v-show="users" @click="users = null" color="danger">Hide Users</ion-button>
       </div>
     </ion-content>
   </ion-page>
 </template>
 
-<script setup lang="ts">
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+<script lang="ts">
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonButton, IonLabel } from '@ionic/vue';
+import { defineComponent } from 'vue';
+import { CapacitorHttp } from '@capacitor/core';
+
+export default defineComponent({
+  name: 'Home',
+  components: {
+    IonContent,
+    IonHeader,
+    IonPage,
+    IonTitle,
+    IonToolbar,
+    IonLabel,
+    IonButton,
+    IonList,
+    IonItem
+  },
+  data() {
+    return { users: null } // sets users to null on instantiation
+  },
+  methods: {
+    async loadUsers() {
+
+      const options = {
+        url: 'https://my.deal.by/api/v1/orders/list',
+        headers: { 'Authorization': 'Bearer 09db5f5143554c6b2bc31920a1553be43e7f2c1a' },
+      };
+
+
+      
+
+      try {
+        const response: HttpResponse = await CapacitorHttp.get(options);
+        this.users = response.data;
+      } catch (e) {
+        this.users = e;
+      }
+
+    }
+  },
+}
+)
 </script>
 
 <style scoped>
 #container {
   text-align: center;
-  
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
+
   transform: translateY(-50%);
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+.top-margin {
+  top: 20%;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-  
-  color: #8c8c8c;
-  
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
+.usersShowing {
+  margin-top: 70%;
 }
 </style>
